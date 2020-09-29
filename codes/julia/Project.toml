@@ -1,0 +1,10 @@
+name = "Automation and the Future of Work"
+authors = ["Michele Fornino <mfornino@mit.edu>", "Andrea Manera <manera@mit.edu>"]
+version = "1.0.0"
+
+[deps]
+Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
+MarkovChains = "006c4929-8afa-4b8c-b9b1-ffa913757d23"
+Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
+ProgressMeter = "92933f4c-e287-5a05-a399-4b506db050ca"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
