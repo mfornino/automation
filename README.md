@@ -6,8 +6,31 @@ We study the economic incentives for automation when labor and machines are perf
 
 ## Folder Structure
 The folders are organized as follows:
-1. Numerical analysis codes
-2. Empirical/Quantitative analysis codes
-3. Current drafts
 
-Need to add replication codes.
+```bash
+├── matlab
+│   ├── generalEquilibrium.m
+│   ├── GetGrids.m
+│   ├── num2hms.m
+│   ├── partialEquilibrium.m
+│   ├── SetParametersGE.m
+│   ├── SolvePolicy_rigidlabor.m
+│   ├── SolveTransition.m
+│   ├── Statistics.csv
+│   ├── table2latex.m
+│   ├── x0.csv
+│   └── x0_gamma.csv
+├── matlabReadme.pdf
+├── stata
+│   ├── bin
+│   │   ├── runCompustatResidIFR.do
+│   │   ├── runDetrendResiduals.do
+│   │   ├── runEstimatorsIFR.do
+│   │   ├── runGenerateAllData.do
+│   │   ├── runMergeAll.do
+│   │   ├── runProdLineEmp.do
+│   │   └── runThetaProd.do
+│   ├── dataRaw
+│   └── out
+└── stataReadme.pdf
+```
