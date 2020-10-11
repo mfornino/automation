@@ -62,13 +62,13 @@ end
 
 
 """
-	function HamiltonJacobiBellmanEquations.HJBEquation(params::RCK_params)
+	function DynamicProgramming.HJBEquation(params::RCK_params)
 
 
 Overloaded constructor for input of type RCK_params.
 
 """
-function HamiltonJacobiBellmanEquations.HJBEquation(params::RCK_params)
+function DynamicProgramming.HJBEquation(params::RCK_params)
 
 	# Use UnPack.jl to localize all members of params
 	@unpack_RCK_params params

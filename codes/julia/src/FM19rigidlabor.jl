@@ -79,13 +79,13 @@ end
 
 
 """
-	function HamiltonJacobiBellmanEquations.HJBEquation(params::FM19rigidlabor_params)
+	function DynamicProgramming.HJBEquation(params::FM19rigidlabor_params)
 
 
 Overloaded constructor for input of type FM19rigidlabor_params.
 
 """
-function HamiltonJacobiBellmanEquations.HJBEquation(params::FM19rigidlabor_params)
+function DynamicProgramming.HJBEquation(params::FM19rigidlabor_params)
 
 	# Use UnPack.jl to localize all members of params
 	@unpack_FM19rigidlabor_params params
@@ -195,7 +195,7 @@ function MarkovChains.ContinuousTimeMarkovChain(params::FM19rigidlabor_params)
 end
 
 
-function HamiltonJacobiBellmanEquations.solve(params::FM19rigidlabor_params)
+function DynamicProgramming.solve(params::FM19rigidlabor_params)
 
 	return solve(HJBEquation(params))
 

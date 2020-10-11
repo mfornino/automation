@@ -58,13 +58,13 @@ end
 
 
 """
-	function HamiltonJacobiBellmanEquations.HJBEquation(params::Aiyagari_params)
+	function DynamicProgramming.HJBEquation(params::Aiyagari_params)
 
 
 Overloaded constructor for input of type Aiyagari_params.
 
 """
-function HamiltonJacobiBellmanEquations.HJBEquation(params::Aiyagari_params)
+function DynamicProgramming.HJBEquation(params::Aiyagari_params)
 
 	# Use UnPack.jl to localize all members of params
 	@unpack_Aiyagari_params params

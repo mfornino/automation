@@ -2,16 +2,16 @@
 module tmp
 
 # Include HamiltonJacobiBellmanEquations as if it were a package.
-include("hjb.jl")
-using .HamiltonJacobiBellmanEquations
+# include("hjb.jl")
+# using .HamiltonJacobiBellmanEquations
 
-# Dependencies specific to this code:
+# # Dependencies specific to this code:
 using MarkovChains
+using DynamicProgramming
 using Distributions # used to get boundaries of zGrid from theoretical Gamma
 using Parameters
-
-# Temporary Modules
-using Debugger
+# # Temporary Modules
+# using Debugger
 
 
 #-----------------------------------------------------------------------------#
@@ -44,14 +44,14 @@ using Debugger
 #-----------------------------------------------------------------------------#
 # 							Run FM Base Model Test 							  #
 #-----------------------------------------------------------------------------#
-# include("FM19base.jl")
-# parameters = FM19base_params()
-# display(parameters)
-# # shock = ContinuousTimeMarkovChain(parameters)
-# problem = HJBEquation(parameters)
-# solution = solve(problem)
-# statDist = stationary_distribution(solution)
-# samplePath = random_sample(solution)
+include("FM19base.jl")
+parameters = FM19base_params()
+display(parameters)
+# shock = ContinuousTimeMarkovChain(parameters)
+problem = HJBEquation(parameters)
+solution = solve(problem)
+statDist = stationary_distribution(solution)
+samplePath = random_sample(solution)
 
 
 #-----------------------------------------------------------------------------#

@@ -78,7 +78,7 @@ end
 Overloaded constructor for input of type FM19base_params.
 
 """
-function HamiltonJacobiBellmanEquations.HJBEquation(params::FM19base_params)
+function DynamicProgramming.HJBEquation(params::FM19base_params)
 
 	# Use UnPack.jl to localize all members of params
 	@unpack_FM19base_params params
@@ -180,7 +180,7 @@ function MarkovChains.ContinuousTimeMarkovChain(params::FM19base_params)
 end
 
 
-function HamiltonJacobiBellmanEquations.solve(params::FM19base_params)
+function DynamicProgramming.solve(params::FM19base_params)
 
 	return solve(HJBEquation(params))
 
