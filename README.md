@@ -1,6 +1,6 @@
 # Automation and the Future of Work
-Repository for my Job Market Paper:
-"Automation and the Future of Work: Assessing the Role of Labor Flexibility" 
+Repository for my Job Market Paper
+"Automation and the Future of Work: Assessing the Role of Labor Flexibility" |
 R&R at the Review of Economic Dynamics | joint with Andrea Manera
 
 ## Abstract
