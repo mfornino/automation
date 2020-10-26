@@ -5,6 +5,26 @@
 #					  BASE model 					#
 #---------------------------------------------------#
 
+# @with_kw struct FM19shock
+
+# 	σz = 
+# 	zd = 
+# 	θz = 
+
+# 	Nz::I = 200
+# 	zGrid_lower_quantile = 1e-4
+# 	zGrid_upper_quantile = 1 - 1e-4
+
+# 	kind =  
+
+# 	# @assert θz > 0 
+# 	# @assert σz > 0
+# 	# @assert zd > 0
+
+# 	# @assert Nz > 0
+# 	# @assert zGrid_upper_quantile > zGrid_lower_quantile
+# 	# @assert zGrid_lower_quantile > 0
+# 	# @assert zGrid_upper_quantile < 1
 
 """
 	FM19base_params{F<:Real, I<:Integer}
@@ -13,7 +33,7 @@
 
 
 """
-@with_kw struct FM19base_params{F<:Real, I<:Integer} @deftype F
+@with_kw struct FM19base_params{F<:Real, I<:Integer, S::FM19shock} @deftype F
 
 	# Parameters
 	θ = 0.5
@@ -24,10 +44,11 @@
 	δ = log(1 + 1/12)
 	ρ = log(1 + 0.04)
 	ψR = 25.0
-	θz = 0.1
-	σz = 0.4
-	zd = 1.0
+	# θz = 0.1
+	# σz = 0.4
+	# zd = 1.0
 	p = 1.0
+	shock_params::S
 
 	# Derived Parameters
 	Ω = (1.0 - Γ)/Γ * w - m
@@ -35,9 +56,9 @@
 
 	# Grids Parameters
 	NR::I = 200
-	Nz::I = 200
-	zGrid_lower_quantile = 1e-4
-	zGrid_upper_quantile = 1 - 1e-4
+	# Nz::I = 200
+	# zGrid_lower_quantile = 1e-4
+	# zGrid_upper_quantile = 1 - 1e-4
 	RGrid_lower = 0.0
 	RGrid_upper = Rmax
 
@@ -50,18 +71,18 @@
 	@assert δ > 0
 	@assert ρ > 0
 	@assert ψR > 0
-	@assert θz > 0 
-	@assert σz > 0
-	@assert zd > 0
+	# @assert θz > 0 
+	# @assert σz > 0
+	# @assert zd > 0
 	@assert p > 0
 	@assert Ω > 0 "Labor savings Ω cannot be negative."
 
 	# Check values for grids make sense
 	@assert NR > 1
-	@assert Nz > 0
-	@assert zGrid_upper_quantile > zGrid_lower_quantile
-	@assert zGrid_lower_quantile > 0
-	@assert zGrid_upper_quantile < 1
+	# @assert Nz > 0
+	# @assert zGrid_upper_quantile > zGrid_lower_quantile
+	# @assert zGrid_lower_quantile > 0
+	# @assert zGrid_upper_quantile < 1
 	@assert RGrid_lower >= 0
 
 	# Enforce definitions (prevents accidental creation of object with wrong derived parameters)
@@ -130,11 +151,10 @@ function DynamicProgramming.HJBEquation(params::FM19base_params)
 					   optimal_controls, 
 					   state_constraints,
 					   state_grids_endog,
-					   exog_shock,
+					   mc,
 					   ρ)
 
 end
-
 
 
 """
@@ -144,41 +164,80 @@ end
 Overloaded constructor for input of type FM19base_params.
 
 """
-function MarkovChains.ContinuousTimeMarkovChain(params::FM19base_params)
+function MarkovChains.ContinuousTimeMarkovChain(params::FM19shock)
 
-	@unpack_FM19base_params params
-
-	# Construct exog_shock ContinuousTimeMarkovChain object (if problem is stochastic).
-	if Nz > 1
-
-		# Obtain discretize diffusion process object as a MarkovChains.ContinuousTimeMarkovChain.
-		μ = z -> -θz .* (z .- zd)
-		σ = z -> sqrt(2 * θz * σz^2 / zd) .* sqrt.(z)
-		dp = ItoDiffusionProcess(μ, σ)
-		
-		# Theoretical benchmark for CIR stationary distribution, used for zGrid.
-		shape = zd^2 / σz^2
-		rate = zd / shape
-		Fz_theory = Gamma(shape, rate)
-		zGrid_lower = quantile(Fz_theory, zGrid_lower_quantile)
-		zGrid_upper = quantile(Fz_theory, zGrid_upper_quantile)
-
-		# Allocate Grid
-		zGrid = Vector(range(zGrid_lower, zGrid_upper, length = Nz))
-
-		# Exogenous Shock: ContinuousTimeMarkovChain object 
-		exog_shock = ContinuousTimeMarkovChain(dp, zGrid)
-
-	elseif Nz == 1
-
-		exog_shock = ContinuousTimeMarkovChain(reshape([0], 1, 1), [zd])
-
-	end
-
-	return exog_shock
+	@unpack_FM19shock
 
 end
 
+# function MarkovChains.ContinuousTimeMarkovChain(params::FM19base_params)
+
+# 	@unpack_FM19base_params params
+
+# 	# Construct exog_shock ContinuousTimeMarkovChain object (if problem is stochastic).
+# 	if Nz > 1
+
+# 		# Obtain discretize diffusion process object as a MarkovChains.ContinuousTimeMarkovChain.
+# 		μ = z -> -θz .* (z .- zd)
+# 		σ = z -> sqrt(2 * θz * σz^2 / zd) .* sqrt.(z)
+# 		dp = ItoDiffusionProcess(μ, σ)
+		
+# 		# Theoretical benchmark for CIR stationary distribution, used for zGrid.
+# 		shape = zd^2 / σz^2
+# 		rate = zd / shape
+# 		Fz_theory = Gamma(shape, rate)
+# 		zGrid_lower = quantile(Fz_theory, zGrid_lower_quantile)
+# 		zGrid_upper = quantile(Fz_theory, zGrid_upper_quantile)
+
+# 		# Allocate Grid
+# 		zGrid = Vector(range(zGrid_lower, zGrid_upper, length = Nz))
+
+# 		# Exogenous Shock: ContinuousTimeMarkovChain object 
+# 		exog_shock = ContinuousTimeMarkovChain(dp, zGrid)
+
+# 	elseif Nz == 1
+
+# 		exog_shock = ContinuousTimeMarkovChain(reshape([0], 1, 1), [zd])
+
+# 	end
+
+# 	return exog_shock
+
+# end
+# function MarkovChains.ContinuousTimeMarkovChain(params::FM19base_params)
+
+# 	@unpack_FM19base_params params
+
+# 	# Construct exog_shock ContinuousTimeMarkovChain object (if problem is stochastic).
+# 	if Nz > 1
+
+# 		# Obtain discretize diffusion process object as a MarkovChains.ContinuousTimeMarkovChain.
+# 		σ = sqrt(2 * θz * (log(σz .^ 2 ./ (zd .^ 2) + 1)))
+# 		μ̂ = log(zd) + 1/2 * σ^2 / 2 / θz
+# 		μt = z -> -θz .* (log(z) .- μ̂) .* z
+# 		σt = z -> σ .* z
+# 		dp = ItoDiffusionProcess(μt, σt)
+		
+# 		# Theoretical benchmark for CIR stationary distribution, used for zGrid.
+# 		Fz_theory = LogNormal(μ̂ - σ^2 / 2 / θz, σ / sqrt(2 * θz))
+# 		zGrid_lower = quantile(Fz_theory, zGrid_lower_quantile)
+# 		zGrid_upper = quantile(Fz_theory, zGrid_upper_quantile)
+
+# 		# Allocate Grid
+# 		zGrid = Vector(range(zGrid_lower, zGrid_upper, length = Nz))
+
+# 		# Exogenous Shock: ContinuousTimeMarkovChain object 
+# 		exog_shock = ContinuousTimeMarkovChain(dp, zGrid)
+
+# 	elseif Nz == 1
+
+# 		exog_shock = ContinuousTimeMarkovChain(reshape([0], 1, 1), [zd])
+
+# 	end
+
+# 	return exog_shock
+
+# end
 
 function DynamicProgramming.solve(params::FM19base_params)
 
