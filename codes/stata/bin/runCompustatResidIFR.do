@@ -59,6 +59,10 @@ replace sale = sale/gdpdef
 gen l_sale = log(sale)
 gen l_emp = log(emp)
 gen l_lkstock = log(l.kstock)
+* Include lags for inventories
+gen lag_l_emp = l.l_emp
+gen lag_l_lkstock = l.l_lkstock
+
 gen sic2 = floor(sic/100)
 rename sic sic87
 
@@ -79,10 +83,11 @@ keep industry* apr_us_lv*
 merge 1:m industry_ifr19 using "$masterpath/out/dataCleanedCompustat.dta"
 drop _merge
 
-encode industry_ifr19, generate(ifrCode)
+encode industry_ifr19, gen(ifrCode)
 
 * Obtain TFP residuals by IFR sector
-xtreg l_sale i.fyear#i.ifrCode i.ifrCode#c.l_emp i.ifrCode#c.l_lkstock , fe  
+xtreg l_sale i.fyear#i.ifrCode i.ifrCode#c.l_emp i.ifrCode#c.l_lkstock, fe  
+*i.ifrCode#c.lag_l_emp  i.ifrCode#c.lag_l_lkstock 
 
 predict tfp, e
 

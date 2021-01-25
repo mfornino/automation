@@ -1,14 +1,18 @@
-function out = GetGrids(params, ReducedOutput)
-
 % Fornino Manera (2019)
+% 
+% DATE: January 24, 2021
 %
+% Project: Automation and the Future of Work: Assessing the Role of Labor
+%          Flexibility
+
+function out = GetGrids(params, ReducedOutput)
 % This subroutine is called by SolveTransition.m to compute the grid given
 % the initial and the final steady states. Then, the upper envelope of the
 % two is chosen for the actual grid used along the transition.
 %
 % Input
-% - V: value function
 % - params: parameters of main model
+% - ReducedOutput: boolean to reduce size of output
 %
 % Outputs("out" struct object, same as LaborDemand_trapz.m)
 % - out: struct object containing a host of information on the transitional
@@ -43,7 +47,6 @@ t = params.t;
 delta = params.delta;
 % Adjustment cost parameters
 psi_k = params.psi_k; % capital
-psi_l = params.psi_l; % labor
 % Volatility
 if isfield(params, 'volatility')
     volatility = params.volatility;
@@ -95,79 +98,48 @@ end
 if strcmp(Utilization,'No')
     k_bar = @(P) 1/(1-Gamma)*( W./(A_prod*P*Gamma*t)).^(1/(t-1)) ;
 
-    Pi = @ (k ,l, P) ((Gamma * l + (1-Gamma) * k) <= (1-Gamma)*k_bar(P)).* (...
-         A_prod * P (Gamma * l + (1-Gamma) * k).^t - W * l - E * k ) +...
-         ((Gamma * l + (1-Gamma) * k) > (1-Gamma) * k_bar(P) ).* (...
-    (k <= k_bar(P)) .* (...
+    Pi = @ (k , P) (k <= k_bar(P)) .* (...
         (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
         + (W * (1-Gamma) / Gamma - E) * k ) + ...
         (k > k_bar(P)) .* (...
-        A_prod * (1 - Gamma)^t * P .* k .^t - E * k) );
+        A_prod * (1 - Gamma)^t * P .* k .^t - E * k);
 else
-   
-    if ~strcmp(LaborUtilization,'No')
+    Utilization_low_region = ((1-Gamma)/Gamma * W - E)>=0;
+% AMENDED PROFIT AND KBAR if there is a utilization margin
+    k_bar = @(P) 1/(1-Gamma)*( W./(A_prod*P*Gamma*t)).^(1/(t-1)) ;
+    k_hat = @(P) ( (A_prod*P*(1-Gamma)^t*t)./E).^(1/(1-t)) ;
 
-        % AMENDED PROFIT AND KBAR if there is a utilization margin
-        k_bar = @(P) 1/(1-Gamma)*( W./(A_prod*P*Gamma*t)).^(1/(t-1)) ;
-        k_hat = @(P) ( (A_prod*P*(1-Gamma)^t*t)./E).^(1/(1-t)) ;
-
-
-        Pi = @ (k ,l, P) ((Gamma * l + (1-Gamma) * k) <= (1-Gamma)*k_bar(P)).* (...
-             A_prod .* P .* (Gamma * l + (1-Gamma) * k).^t - W * l - E * k ) +...
-             ((Gamma * l + (1-Gamma) * k) > (1-Gamma) * k_bar(P) ).* (...
-        (k <= k_bar(P)) .* (...
-            (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
-            + (W * (1-Gamma) / Gamma - E) * k ) + ...
-            (k > k_bar(P)) .* (k < k_hat(P)) .* (...
-            A_prod * (1 - Gamma)^t * P .* k .^t - E * k) +...
-            (k >= k_hat(P)) .* (...
-            A_prod * (1 - Gamma)^t * P .* k_hat(P) .^t - E * k_hat(P)));
-
-
-
-        if E==0
-            % Here k_hat(P) is Inf, so we are never in the highest region.
-            % Labor savings cannot turn negative here!
-            % Utilization always set to u=1 because of no flow cost.
-            Pi = @ (k ,l, P) ((Gamma * l + (1-Gamma) * k) <= (1-Gamma)*k_bar(P)).* (...
-             A_prod * P .* (Gamma * l + (1-Gamma) * k).^t - W * l - E * k ) +...
-             ((Gamma * l + (1-Gamma) * k) > (1-Gamma) * k_bar(P) ).* (...
-            (k <= k_bar(P)) .* (...
-            (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
-            + (W * (1-Gamma) / Gamma - E) * k ) + ...
-            (k > k_bar(P)) .* (...
-            A_prod * (1 - Gamma)^t * P .* k .^t - E * k) );
-
-        end
-    else
-        % AMENDED PROFIT AND KBAR if there is a utilization margin
-        k_bar = @(P) 1/(1-Gamma)*( W./(A_prod*P*Gamma*t)).^(1/(t-1)) ;
-        k_hat = @(P) ( (A_prod*P*(1-Gamma)^t*t)./E).^(1/(1-t)) ;
-
-
-        p_hat = @(R) E / (A_prod * t * (1 - Gamma)^t) .* R .^ (1 - t);
-        p_bar = @(R) W / (A_prod * t * Gamma) .* (R .* (1 - Gamma)).^ (1 - t);
-
-        Pi = @ (k ,l, P) ((Gamma * l) < (1-Gamma)*(k_hat(P) - k)).* (...
-             A_prod .* P .* (Gamma * l + (1-Gamma) * k).^t - W * l - E * k ) +...
-             ((Gamma * l) >= (1-Gamma)*(k_hat(P) - k)).*... 
-         ((Gamma * l)<= (1-Gamma)*(k_hat(P) )).* (...
-            A_prod .* P .* ((1-Gamma) * k_hat(P)).^t - (W - Gamma/(1-Gamma) * E) * l...
-            -  E * k_hat(P)) + ...
-            ((Gamma * l) > (1-Gamma)*(k_hat(P) )) .* (...
-             A_prod .* P .* (Gamma * l ).^t - W * l);
-        
+    p_hat = @(R) E / (A_prod * t * (1 - Gamma)^t) .* R .^ (1 - t);
+    p_bar = @(R) W / (A_prod * t * Gamma) .* (R .* (1 - Gamma)).^ (1 - t);
+    
+    Pi = @ (k , P) (k <= k_bar(P)) .* (...
+        (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
+        + (W * (1-Gamma) / Gamma - E) * Utilization_low_region * k ) + ...
+        Utilization_low_region .* ((k > k_bar(P)) .* (k <= k_hat(P)).*  (...
+        A_prod * (1 - Gamma)^t * P .* k .^t - E * k) +...
+        (k > k_hat(P)).* (A_prod * (1 - Gamma)^t * P .* k_hat(P) .^t - E * k_hat(P))) + ...
+        (1 - Utilization_low_region) .* (k > k_bar(P)) .* ( ...
+        (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
+        + (W * (1-Gamma) / Gamma - E) * Utilization_low_region * k );
+    
+    Pi_prime = @ (k , P) (k <= k_bar(P)) .* (...
+         (W * (1-Gamma) / Gamma - E) * Utilization_low_region) + ...
+        Utilization_low_region .* ((k > k_bar(P)) .* (k <= k_hat(P)).*  (...
+        A_prod * (1 - Gamma)^t * t * P .* k .^(t - 1) - E) );
+    
+    if E==0
+        % Here k_hat(P) is Inf, so we are never in the highest region.
+        % Labor savings cannot turn negative here!
+        % Utilization always set to u=1 because of no flow cost.
+        Pi = @ (k , P) (k <= k_bar(P)) .* (...
+        (1 - t) * (1 - Gamma)^t * A_prod * P  .* (k_bar(P)).^(t) ...
+        + (W * (1-Gamma) / Gamma - E) * k ) + ...
+        (k > k_bar(P)) .* (k <= k_hat(P)).*  (...
+        A_prod * (1 - Gamma)^t * P .* k .^t - E * k);
+    
     end
-        if E==0
-            % Here k_hat(P) is Inf, so we are never in the highest region.
-            % Labor savings cannot turn negative here!
-            % Utilization always set to u=1 because of no flow cost.
-            Pi = @ (k ,l, P)... 
-             A_prod .* P .* (Gamma * l + (1-Gamma) * k).^t - W * l - E * k;
-        end
-
+    
 end
-
 
 % Adjustment cost functions
 if pay_for_delta == 0
@@ -215,38 +187,11 @@ opts = optimset('display', 'off');
 K_star = @(P) fsolve(@(k) solve_max_k(k,P), K_star_guess(P), opts);
 
 
-% Adjustment costs labor
-
-% Adjustment cost functions
-if pay_for_delta == 0
-    phi_l = @(I_l) psi_l/2 .* (I_l) .^2;
-%     phi_l = @(I_l) psi_k/2 .* (I_l - sep) .^2;
-else
-    phi_l = @(I_l) psi_l/2 .* (I_l) .^2;
-end
-% Derivatives
-
-if pay_for_delta == 0
-    dphi_l = @(I_l) psi_l .* (I_l) ;
-%     dphi_l = @(I_l) psi_l .* (I_l - sep) ;
-else
-    dphi_l = @(I_l) psi_l .* (I_l) ;
-end
-% Inverse derivatives
-if pay_for_delta == 0
-    inv_dphi_l = @(y) 1/psi_l .* y;
-%     inv_dphi_l = @(y) 1/psi_l .* y + sep ;
-else
-    inv_dphi_l = @(y) 1/psi_l .* y;
-end
-
-
 
 %% Grid parameters
 
 % Size
 N_k = params.N_k; % capital
-N_l = params.N_l; % labor
 
 if stochastic == 1
     N_p = N_p; % Poisson states for the price
@@ -392,21 +337,7 @@ else
     end
 end
 
- %% Boundaries Labor
-if isfield(params, 'lmin') 
-    lmin = params.lmin;
-else
-    lmin = 0;
-end
- 
-if isfield(params, 'lmax')
-    lmax = params.lmax;
-else
-    lmax = (1 - Gamma)/(Gamma) * k_bar(pmax);
-end
-
-
-if ~ ReducedOutput
+if ~ReducedOutput
     %% grids
 
     %option to have unevenly spaced grid Gamma > 1 gives more points for lower
@@ -417,25 +348,14 @@ if ~ ReducedOutput
         GridKGamma = 1;
     end
 
-    if isfield(params, 'GridLGamma')
-        GridLGamma = params.GridLGamma;
-    else
-        GridLGamma = 1;
-    end
-
-
     % grids
     k_grid = kmin + (kmax - kmin) * (linspace(0, 1, N_k).^GridKGamma)';
-    l_grid = lmin + (lmax - lmin) * (linspace(0, 1, N_l).^GridLGamma)';
 
     % in single vector form with p outer state, then a, then k
 
-    kk = repmat(k_grid, N_l, 1);
-    ll = kron(l_grid, ones(N_k,1));
 
-    kk = repmat(kk, N_p, 1);
-    ll = repmat(ll, N_p, 1);
-    pp = kron(p_grid' , ones(N_k*N_l , 1));
+    kk = repmat(k_grid, N_p, 1);
+    pp = kron(p_grid' , ones(N_k , 1));
 
 
     %DELTAS for k
@@ -444,31 +364,13 @@ if ~ ReducedOutput
     dk_vec_dwn = diff(k_grid) ;
     dk_vec_dwn = [dk_vec_dwn(1); dk_vec_dwn];
 
-    dk_vec_up = repmat(dk_vec_up, N_l, 1);
     dk_vec_up = repmat(dk_vec_up, N_p, 1);
 
-    dk_vec_dwn = repmat(dk_vec_dwn, N_l, 1);
     dk_vec_dwn = repmat(dk_vec_dwn, N_p, 1);
 
     dk_mean = (dk_vec_up + dk_vec_dwn)/2;
     dk_mean(1) = dk_mean(1)/2;
     dk_mean(end) = dk_mean(end)/2;
-
-    %DELTAS for l
-    dl_vec_up = diff(l_grid);
-    dl_vec_up = [dl_vec_up; dl_vec_up(end)];
-    dl_vec_dwn = diff(l_grid) ;
-    dl_vec_dwn = [dl_vec_dwn(1); dl_vec_dwn];
-
-    dl_vec_up = kron(dl_vec_up, ones(N_k,1));
-    dl_vec_up = repmat(dl_vec_up, N_p, 1);
-
-    dl_vec_dwn = kron(dl_vec_dwn, ones(N_k,1));
-    dl_vec_dwn = repmat(dl_vec_dwn, N_p, 1);
-
-    dl_mean = (dl_vec_up + dl_vec_dwn)/2;
-    dl_mean(1) = dl_mean(1)/2;
-    dl_mean(end) = dl_mean(end)/2;
 
 
     %DELTAS for p
@@ -479,8 +381,8 @@ if ~ ReducedOutput
         dp_vec_dwn = diff(p_grid') ;
         dp_vec_dwn = [dp_vec_dwn(1); dp_vec_dwn] ;
 
-        dp_vec_up = kron(dp_vec_up , ones(N_k*N_l , 1));
-        dp_vec_dwn = kron(dp_vec_dwn , ones(N_k*N_l , 1));
+        dp_vec_up = kron(dp_vec_up , ones(N_k, 1));
+        dp_vec_dwn = kron(dp_vec_dwn , ones(N_k, 1));
 
         dp_mean = (dp_vec_up + dp_vec_dwn)/2;
         dp_mean(1) = dp_mean(1)/2;
@@ -488,13 +390,9 @@ if ~ ReducedOutput
     end
 
 
-    %% DEFINE TRANSITIONS
+    ind = (1:1:N_k * N_p)'; % starting state indices
 
-    % CAPITAL GRID
-    % create indices (and implicitly set boundary conditions)
-    ind = (1:1: N_k * N_l * N_p )'; % starting state indices
-
-    vector_ind = ind2sub_vec([N_k N_l N_p], ind); %matrix with indices for all states
+    vector_ind = ind2sub_vec([N_k N_p], ind); %matrix with indices for all states
     k_up = (N_k  - vector_ind(:,1)) > 0 ; %positions where it is possible to go up
     k_dwn = ( vector_ind(:,1) -1) > 0 ; %positions where it is possible to go down
 
@@ -502,21 +400,8 @@ if ~ ReducedOutput
     %transition indices if drift is positive (up) or negative (dwn)
     % set indices so that if we cannot move up, the "up" index is the same as
     % the original index, similar for down
-    ind_up_k = sub2ind_vec([N_k  N_l  N_p], vector_ind + [k_up zeros(length(ind),2)]);
-    ind_dwn_k = sub2ind_vec([N_k N_l  N_p], vector_ind - [k_dwn zeros(length(ind),2)]);
-
-
-    % LABOR GRID
-
-    l_up = (N_l  - vector_ind(:,2)) > 0 ; %positions where it is possible to go up
-    l_dwn = ( vector_ind(:,2) -1) > 0 ; %positions where it is possible to go down
-
-
-    %transition indices if drift is positive (up) or negative (dwn)
-    % set indices so that if we cannot move up, the "up" index is the same as
-    % the original index, similar for down
-    ind_up_l = sub2ind_vec([N_k  N_l  N_p], vector_ind + [zeros(length(ind),1) l_up zeros(length(ind),1)]);
-    ind_dwn_l = sub2ind_vec([N_k N_l  N_p], vector_ind - [zeros(length(ind),1) l_dwn zeros(length(ind),1)]);
+    ind_up_k = sub2ind_vec([N_k  N_p], vector_ind + [k_up zeros(length(ind),1)]);
+    ind_dwn_k = sub2ind_vec([N_k  N_p], vector_ind - [k_dwn zeros(length(ind),1)]);
 
 
     if ~strcmp(ShockType, 'Diffusion')
@@ -534,9 +419,9 @@ if ~ ReducedOutput
 
          %% JUMPS UP
          for shift_state = 1 : N_p - 1 %over max number of possible jumps up 
-             shift_possible = vector_ind(: , 3) + shift_state <= N_p; % indicator u-bound
-             ind_col_up = sub2ind_vec([N_k  N_l  N_p],...
-                 vector_ind + [zeros(length(ind),2) shift_possible * shift_state ]);
+             shift_possible = vector_ind(: , 2) + shift_state <= N_p; % indicator u-bound
+             ind_col_up = sub2ind_vec([N_k  N_p],...
+                 vector_ind + [zeros(length(ind),1) shift_possible * shift_state ]);
              % select only states where it actually goes up
              ind_col_up = ind_col_up(logical(shift_possible));
              ind_row_up = ind(logical(shift_possible));
@@ -546,14 +431,14 @@ if ~ ReducedOutput
 
              for state = 1: (N_p - shift_state) %loop for states where shift_state is possible
                  % get off-diag. elms that are above current state
-                 F_p = [F_p; repmat( Lambda(state, state + shift_state),N_k * N_l, 1)];
+                 F_p = [F_p; repmat( Lambda(state, state + shift_state),N_k, 1)];
              end
          end
          %% JUMPS DOWN
         for shift_state = 1 : N_p - 1 %over max number of possible jumps down
-             shift_possible = vector_ind(: , 3) - shift_state >= 1; % indicator l-bound
-             ind_col_dwn = sub2ind_vec([N_k  N_l  N_p],...
-                 vector_ind - [zeros(length(ind),2) shift_possible * shift_state ]);
+             shift_possible = vector_ind(: , 2) - shift_state >= 1; % indicator l-bound
+             ind_col_dwn = sub2ind_vec([N_k  N_p],...
+                 vector_ind - [zeros(length(ind),1) shift_possible * shift_state ]);
              % select only states where it actually goes up
              ind_col_dwn = ind_col_dwn(logical(shift_possible));
              ind_row_dwn = ind(logical(shift_possible));
@@ -563,16 +448,16 @@ if ~ ReducedOutput
 
              for state = (shift_state + 1): N_p %loop for states where jumps possible
                  % get off-diag. elms that are below current state
-                 B_p = [B_p; repmat( Lambda(state, state - shift_state), N_k * N_l, 1)];
+                 B_p = [B_p; repmat( Lambda(state, state - shift_state), N_k, 1)];
              end
          end 
         %% DIAGONAL
         if stochastic
              for state = 1: N_p
-                 DIAG_p = [DIAG_p; repmat( Lambda(state, state), N_k * N_l, 1)];
+                 DIAG_p = [DIAG_p; repmat( Lambda(state, state), N_k, 1)];
              end
         else
-            DIAG_p = zeros( N_k * N_l, 1);
+            DIAG_p = zeros( N_k, 1);
         end
 
 
@@ -588,26 +473,27 @@ if ~ ReducedOutput
     else
 
         if stochastic
-            F_p = kron(outDiffusion.F_p' , ones(N_k * N_l , 1));
-            B_p = kron(outDiffusion.B_p' , ones(N_k * N_l , 1));
-
+            F_p = repmat(outDiffusion.F_p, N_k, 1);
+            F_p = F_p(:);
+            B_p = repmat(outDiffusion.B_p, N_k, 1);
+            B_p = B_p(:);
             DIAG_p = - F_p - B_p;
         else
-             DIAG_p = zeros(N_k*N_l, 1);
-             F_p = DIAG_p;
-             B_p = DIAG_p;
+            DIAG_p = zeros( N_k, 1);
+            F_p = DIAG_p;
+            B_p = DIAG_p;
         end
 
 
-        p_up = (N_p  - vector_ind(: , 3)) > 0 ; %positions where it is possible to go up
-        p_dwn = ( vector_ind(: , 3) -1) > 0 ; %positions where it is possible to go down
+        p_up = (N_p  - vector_ind(:,2)) > 0 ; %positions where it is possible to go up
+        p_dwn = ( vector_ind(:,2) -1) > 0 ; %positions where it is possible to go down
 
 
         %transition indices if drift is positive (up) or negative (dwn)
         % set indices so that if we cannot move up, the "up" index is the same as
         % the original index, similar for down
-        ind_up_p = sub2ind_vec([N_k  N_l  N_p], vector_ind + [zeros(length(ind),2) p_up]);
-        ind_dwn_p = sub2ind_vec([N_k  N_l  N_p], vector_ind - [zeros(length(ind),2) p_dwn]);
+        ind_up_p = sub2ind_vec([N_k  N_p], vector_ind + [zeros(length(ind),1) p_up]);
+        ind_dwn_p = sub2ind_vec([N_k  N_p], vector_ind - [zeros(length(ind),1) p_dwn]);
         ind_p = repmat(ind, 2, 1);
 
 
@@ -620,24 +506,18 @@ end
 %% EXTRACT GRIDS and kmax
 
 if ~ReducedOutput
-    out.ll = ll;
     out.pp = pp;
     out.kk = kk;
     out.ind_up_k = ind_up_k;
     out.ind_dwn_k = ind_dwn_k;
     out.ind_up_p = ind_up_p;
     out.ind_dwn_p = ind_dwn_p;
-    out.ind_up_l = ind_up_l;
-    out.ind_dwn_l = ind_dwn_l;
     out.dk_vec_up = dk_vec_up;
-    out.dl_vec_up = dl_vec_up;
     out.dp_vec_up = dp_vec_up;
     out.dk_vec_dwn = dk_vec_dwn;
-    out.dl_vec_dwn = dl_vec_dwn;
     out.dp_vec_dwn = dp_vec_dwn;
     out.dp_mean = dp_mean;
     out.dk_mean = dk_mean;
-    out.dl_mean = dl_mean;
     out.ind_p = ind_p;
     out.F_p = F_p;
     out.B_p = B_p;
@@ -645,21 +525,17 @@ if ~ReducedOutput
     out.pmax = pmax;
     out.kmin = kmin;
     out.kmax = kmax;
-    out.lmin = lmin;
-    out.lmax = lmax;
     %% DEFINE INTEGRALS
     if strcmp(ShockType, 'Diffusion')
-        out.integrate_kp = @(fun) sum(fun.*dk_mean.*dp_mean.*dl_mean);
+        out.integrate_kp = @(fun) sum(sum(fun.*dk_mean.*dp_mean));
     else
-        out.integrate_kp = @(fun) sum(fun.*dk_mean.*dl_mean);
+        out.integrate_kp = @(fun) sum(sum(fun.*dk_mean));
     end
 else
     out.pmin = pmin;
     out.pmax = pmax;
     out.kmin = kmin;
     out.kmax = kmax;
-    out.lmin = lmin;
-    out.lmax = lmax;
 end
 
 

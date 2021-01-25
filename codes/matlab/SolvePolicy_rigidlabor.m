@@ -1,7 +1,11 @@
-function out = SolvePolicy_rigidlabor(V, params) 
-
 % Fornino Manera (2019)
+% 
+% DATE: January 24, 2021
 %
+% Project: Automation and the Future of Work: Assessing the Role of Labor
+%          Flexibility
+
+function out = SolvePolicy_rigidlabor(V, params) 
 % This subroutine is called by SolveTransition.m to find policies and 
 % returns at time t given the value function at time t. This is used when 
 % solving the transitional dynamics iterating the HJB backwards.

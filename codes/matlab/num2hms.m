@@ -1,9 +1,12 @@
-function hms = num2hms(seconds)
-
 % Fornino Manera (2019)
+% 
+% DATE: January 24, 2021
 %
-% This subroutine converts seconds into a string "#h, #m, #s" 
+% Project: Automation and the Future of Work: Assessing the Role of Labor
+%          Flexibility
 
+function hms = num2hms(seconds)
+% This subroutine converts seconds into a string "#h, #m, #s" 
 
 h = floor(seconds / 3600);
 m = floor((seconds - h * 3600)/60);
