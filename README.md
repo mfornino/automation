@@ -9,9 +9,9 @@ We study the economic incentives for automation when labor and machines are perf
 [Paper](https://github.com/mfornino/automation/blob/master/paper.pdf) | [Slides](https://github.com/mfornino/automation/blob/master/slides.pdf)
 
 ## Replication
-The various versions of the model are simulated in MATLAB. Please refer to the [instructions](https://github.com/mfornino/automation/blob/master/codes/matlabReadme.pdf).
+The various versions of the model are simulated in MATLAB. Please refer to the [instructions](https://github.com/mfornino/automation/blob/master/codes/matlabReadme.pdf). The empirical analysis was carried out in Stata. Please refer to the [instructions](https://github.com/mfornino/automation/blob/master/codes/stataReadme.pdf).
 
-The empirical analysis was carried out in Stata. Please refer to the [instructions](https://github.com/mfornino/automation/blob/master/codes/stataReadme.pdf).
+We ran the code on a workstation with Linux kernel 5.9. CPU is Ryzen Threadripper 2950X with 16 cores and RAM is 64 GB DDR4-3200. The expected completion time with these resources is about 12 hours for the Matlab simulation and 2 hours for the Stata computations. In order to replicate the results, the user should start from the empirical analysis to derive the empirical moments and then run the simulation in Matlab. Random numbers are only used to generate Figure 3, and the seed is reported in the run.m file at the beginning of the relative section.
 
 The codes folder is organized as follows:
 
