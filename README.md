@@ -1,7 +1,7 @@
 # Automation and the Future of Work
 Repository for my paper
 "Automation and the Future of Work: Assessing the Role of Labor Flexibility" |
-Conditionally Accepted at the Review of Economic Dynamics | joint with Andrea Manera
+Review of Economic Dynamics | joint with Andrea Manera
 
 ## Abstract
 We study the economic incentives for automation when labor and machines are perfect substitutes. Labor may still be employed in production, even when it is a costlier input than robots on a productivity-adjusted basis. This occurs if firms face uninsurable idiosyncratic risk, adjusting the stock of machines is costly, and workers can be hired and fired quickly enough. Even though labor survives, jobs become less stable, as workers are hired in short-lived bursts to cope with shocks. We calibrate a general equilibrium, multi-industry version of our model to match data on robot adoption in US manufacturing sectors, and use it to compute the employment and labor share consequences of progress in automation technology. A fall in the relative price of robots leads to relatively few jobs losses, while reductions in adjustment costs, or improvements in relative robot productivity, can be far more disruptive. The model-implied semi-elasticity of aggregate employment to robot penetration (number of robots per thousand employees) ranges between 0.01% and 0.12%, depending on the underlying source of increased robot adoption, consistent with findings in the empirical literature. In an extension, we show that reduced-form hiring and firing costs unambiguously depress long-run employment.
